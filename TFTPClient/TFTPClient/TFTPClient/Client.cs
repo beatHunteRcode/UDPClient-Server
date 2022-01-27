@@ -70,25 +70,26 @@ namespace TFTPClient
 
         private void startMessagesSend()
         {
-            Thread thread = new Thread(async () =>
+            Thread thread = new Thread(() =>
             {
                 SocketReceiveMessageFromResult res = new SocketReceiveMessageFromResult();
                 string message = "";
                 do
                 {
                     message = Console.ReadLine();
+                    if (!_UDPSocket.Connected) _UDPSocket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
                     string option = message.Split(' ')[0];
                     switch (option)
                     {
                         case "-readfile":
-                            await SendReadRequestAsync(message);
+                            SendReadRequestAsync(message);
                             ReceiveMessageAsync(res); // receiving ACK packet
                             ReceiveMessageAsync(res); // receivind DATA packet (with needed file)
                             break;
                         case "-sendfile":
-                            await SendFileInfoAsync(message);
+                            SendFileInfoAsync(message);
                             ReceiveMessageAsync(res); // receiving ACK packet
-                            await SendFileAsync(message);
+                            SendFileAsync(message);
                             break;
                         
                     }
@@ -98,26 +99,26 @@ namespace TFTPClient
             thread.Start();
         }
 
-        private async Task SendReadRequestAsync(string message)
+        private void SendReadRequestAsync(string message)
         {
             RQPacket rqPacket = new RQPacket(OpCodeType.RRQ, message.Split(' ')[1], message.Split(' ')[2]);
-            await Send(rqPacket.getBytes());
+            Send(rqPacket.getBytes());
         }
 
-        public async void HandleMessage(byte[] bytes)
+        public void HandleMessage(byte[] bytes)
         {
-            byte[] opCodeArr = new byte[1];
+            byte[] opCodeArr = new byte[2];
             Array.Copy(bytes, 0, opCodeArr, 0, 2);
             OpCodeType opCodeType = (OpCodeType)Conversions.convertBytesArrayToShort(opCodeArr);
             switch(opCodeType)
             {
                 case OpCodeType.RRQ:
                     AckPacket ackPacketRRQ = new AckPacket(OpCodeType.ACK, 0);
-                    await Send(ackPacketRRQ.getBytes());
+                    Send(ackPacketRRQ.getBytes());
                     break;
                 case OpCodeType.WRQ:
                     AckPacket ackPacketWRQ = new AckPacket(OpCodeType.ACK, 0);
-                    await Send(ackPacketWRQ.getBytes());
+                    Send(ackPacketWRQ.getBytes());
                     break;
                 case OpCodeType.DATA:
                     DataPacket dataPacket = new DataPacket(bytes);
@@ -126,7 +127,7 @@ namespace TFTPClient
                     {
                         receivingFileSegments.Add(dataPacket._Data);
                         AckPacket ackPacketData = new AckPacket(OpCodeType.ACK, dataPacket._BlockNumber);
-                        await Send(ackPacketData.getBytes());
+                        Send(ackPacketData.getBytes());
                     }
                     if (dataPacket._Data.Length > 0 && dataPacket._Data.Length < 512)
                     {
@@ -147,15 +148,15 @@ namespace TFTPClient
             }
         }
 
-        public async Task Send(byte[] data)
+        public void Send(byte[] data)
         {
             var s = new ArraySegment<byte>(data);
-            await _UDPSocket.SendToAsync(s, SocketFlags.None, _UDPEndPoint);
+             _UDPSocket.SendToAsync(s, SocketFlags.None, _UDPEndPoint);
         }
 
-        private async void ReceiveMessageAsync(SocketReceiveMessageFromResult res)
+        private void ReceiveMessageAsync(SocketReceiveMessageFromResult res)
         {
-            res = await _UDPSocket.ReceiveMessageFromAsync(_bufferSegment, SocketFlags.None, _UDPEndPoint);
+            _UDPSocket.ReceiveMessageFromAsync(_bufferSegment, SocketFlags.None, _UDPEndPoint);
             HandleMessage(_bufferSegment.Array);
         }
 
@@ -164,7 +165,7 @@ namespace TFTPClient
             return DateTime.Now.ToString("HH:mm:ss tt");
         }
 
-        public async Task SendFileAsync(string message)
+        public void SendFileAsync(string message)
         {
             string path = message.Split(' ')[1];
             byte[] fileBytes;
@@ -183,22 +184,22 @@ namespace TFTPClient
                 }
                 fileBytesSegmentsList.Add(segmentArr);
             }
-            for (short i = 0; i < fileBytesSegmentsList.Count; i++)
+            for (int i = 0; i < fileBytesSegmentsList.Count; i++)
             {
-                DataPacket dataPacket = new DataPacket(OpCodeType.DATA, i, fileBytesSegmentsList[i]);
-                await Send(dataPacket.getBytes());
+                DataPacket dataPacket = new DataPacket(OpCodeType.DATA, (short)i, fileBytesSegmentsList[i]);
+                Send(dataPacket.getBytes());
             }
 
 
         }
 
-        private async Task SendFileInfoAsync(string message)
+        private void SendFileInfoAsync(string message)
         {
             string path = message.Split(' ')[1];
             FileInfo fileInfo = new FileInfo(path);
-            RQPacket rqPacket = new RQPacket(OpCodeType.WRQ, fileInfo.Name, "NETASCII");
+            RQPacket rqPacket = new RQPacket(OpCodeType.WRQ, fileInfo.Name, message.Split(' ')[2]);
             byte[] packetBytes = rqPacket.getBytes();
-            await Send(packetBytes);
+            Send(packetBytes);
         }
 
         private void SaveFile()

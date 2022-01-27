@@ -13,8 +13,8 @@ namespace TFTPClient
 
         static void Main(string[] args)
         {
-            Client server = new Client(ip, port);
-            server.start();
+            Client client = new Client(ip, port);
+            client.start();
         }
     }
 }
