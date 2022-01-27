@@ -1,0 +1,14 @@
+D:\Programming\С#\UDPChat\TFTPClient\TFTPClient\TFTPClient\bin\Debug\TFTPClient.exe.config
+D:\Programming\С#\UDPChat\TFTPClient\TFTPClient\TFTPClient\bin\Debug\TFTPClient.exe
+D:\Programming\С#\UDPChat\TFTPClient\TFTPClient\TFTPClient\bin\Debug\TFTPClient.pdb
+D:\Programming\С#\UDPChat\TFTPClient\TFTPClient\TFTPClient\obj\Debug\TFTPClient.csproj.AssemblyReference.cache
+D:\Programming\С#\UDPChat\TFTPClient\TFTPClient\TFTPClient\obj\Debug\TFTPClient.csproj.CoreCompileInputs.cache
+D:\Programming\С#\UDPChat\TFTPClient\TFTPClient\TFTPClient\obj\Debug\TFTPClient.exe
+D:\Programming\С#\UDPChat\TFTPClient\TFTPClient\TFTPClient\obj\Debug\TFTPClient.pdb
+D:\Programming\С#\UDPClient-Server\TFTPClient\TFTPClient\TFTPClient\bin\Debug\TFTPClient.exe.config
+D:\Programming\С#\UDPClient-Server\TFTPClient\TFTPClient\TFTPClient\bin\Debug\TFTPClient.exe
+D:\Programming\С#\UDPClient-Server\TFTPClient\TFTPClient\TFTPClient\bin\Debug\TFTPClient.pdb
+D:\Programming\С#\UDPClient-Server\TFTPClient\TFTPClient\TFTPClient\obj\Debug\TFTPClient.csproj.AssemblyReference.cache
+D:\Programming\С#\UDPClient-Server\TFTPClient\TFTPClient\TFTPClient\obj\Debug\TFTPClient.csproj.CoreCompileInputs.cache
+D:\Programming\С#\UDPClient-Server\TFTPClient\TFTPClient\TFTPClient\obj\Debug\TFTPClient.exe
+D:\Programming\С#\UDPClient-Server\TFTPClient\TFTPClient\TFTPClient\obj\Debug\TFTPClient.pdb
