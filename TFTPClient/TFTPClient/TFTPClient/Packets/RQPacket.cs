@@ -54,5 +54,14 @@ namespace TFTPClient.Packets
             _Filename = Encoding.UTF8.GetString(filenameBytes);
             _Mode = Encoding.UTF8.GetString(modeBytes);
         }
+
+        public byte[] getBytes()
+        {
+            byte[] opcodeBytes = Conversions.convertShortToByteArray((short)_Opcode);
+            byte[] filenameBytes = Encoding.UTF8.GetBytes(_Filename);
+            byte[] modeBytes = Encoding.UTF8.GetBytes(_Mode);
+
+            return opcodeBytes.Concat(filenameBytes).Concat(modeBytes).ToArray();
+        }
     }
 }

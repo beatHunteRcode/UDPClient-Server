@@ -49,5 +49,13 @@ namespace TFTPClient.Packets
             _BlockNumber = Conversions.convertBytesArrayToShort(blockNumberBytes);
             _Data = dataBytes;
         }
+
+        public byte[] getBytes()
+        {
+            byte[] opcodeBytes = Conversions.convertShortToByteArray((short)_Opcode);
+            byte[] blocknumberBytes = Conversions.convertShortToByteArray(_BlockNumber);
+
+            return opcodeBytes.Concat(blocknumberBytes).Concat(_Data).ToArray();
+        }
     }
 }

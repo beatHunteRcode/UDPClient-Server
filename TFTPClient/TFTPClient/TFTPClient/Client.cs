@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
@@ -19,8 +20,14 @@ namespace TFTPClient
 
         private byte[] _buffer;
         private ArraySegment<byte> _bufferSegment;
+        private List<byte[]> receivingFileSegments = new List<byte[]>();
+        private string receivedFileName = "received_file";
+        private const short _bufferSize = 512;
 
-        Dictionary<byte, string> errorCodes = new Dictionary<byte, string>
+        private bool receivingFile = false;
+       
+
+        Dictionary<short, string> errorCodes = new Dictionary<short, string>
         {
             { 0, "Not defined, see error message (if any)." },
             { 1, "File not found." },
@@ -57,7 +64,7 @@ namespace TFTPClient
             _UDPEndPoint = new IPEndPoint(IPAddress.Parse(_ip), _port);
             _UDPSocket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
             Console.WriteLine("Client is running");
-            _buffer = new byte[512];
+            _buffer = new byte[_bufferSize];
             _bufferSegment = new ArraySegment<byte>(_buffer);
         }
 
@@ -65,22 +72,39 @@ namespace TFTPClient
         {
             Thread thread = new Thread(async () =>
             {
-                SocketReceiveMessageFromResult res;
+                SocketReceiveMessageFromResult res = new SocketReceiveMessageFromResult();
                 string message = "";
                 do
                 {
                     message = Console.ReadLine();
-                    await Send(Encoding.UTF8.GetBytes(message));
-                    res = await _UDPSocket.ReceiveMessageFromAsync(_bufferSegment, SocketFlags.None, _UDPEndPoint);
-                    ReceiveBytes(_bufferSegment.Array);
-                    Console.WriteLine(Encoding.UTF8.GetString(_bufferSegment.Array));
+                    string option = message.Split(' ')[0];
+                    switch (option)
+                    {
+                        case "-readfile":
+                            await SendReadRequestAsync(message);
+                            ReceiveMessageAsync(res); // receiving ACK packet
+                            ReceiveMessageAsync(res); // receivind DATA packet (with needed file)
+                            break;
+                        case "-sendfile":
+                            await SendFileInfoAsync(message);
+                            ReceiveMessageAsync(res); // receiving ACK packet
+                            await SendFileAsync(message);
+                            break;
+                        
+                    }
                 }
                 while (message != "exit()");
             });
             thread.Start();
         }
 
-        public void ReceiveBytes(byte[] bytes)
+        private async Task SendReadRequestAsync(string message)
+        {
+            RQPacket rqPacket = new RQPacket(OpCodeType.RRQ, message.Split(' ')[1], message.Split(' ')[2]);
+            await Send(rqPacket.getBytes());
+        }
+
+        public async void HandleMessage(byte[] bytes)
         {
             byte[] opCodeArr = new byte[1];
             Array.Copy(bytes, 0, opCodeArr, 0, 2);
@@ -88,16 +112,37 @@ namespace TFTPClient
             switch(opCodeType)
             {
                 case OpCodeType.RRQ:
+                    AckPacket ackPacketRRQ = new AckPacket(OpCodeType.ACK, 0);
+                    await Send(ackPacketRRQ.getBytes());
                     break;
                 case OpCodeType.WRQ:
+                    AckPacket ackPacketWRQ = new AckPacket(OpCodeType.ACK, 0);
+                    await Send(ackPacketWRQ.getBytes());
                     break;
                 case OpCodeType.DATA:
+                    DataPacket dataPacket = new DataPacket(bytes);
+                    if (dataPacket._BlockNumber == 1) receivingFile = true;
+                    if (receivingFile)
+                    {
+                        receivingFileSegments.Add(dataPacket._Data);
+                        AckPacket ackPacketData = new AckPacket(OpCodeType.ACK, dataPacket._BlockNumber);
+                        await Send(ackPacketData.getBytes());
+                    }
+                    if (dataPacket._Data.Length > 0 && dataPacket._Data.Length < 512)
+                    {
+                        receivingFile = false;
+                        SaveFile();
+                    }
                     break;
                 case OpCodeType.ACK:
                     break;
                 case OpCodeType.ERROR:
                     ErrorPacket errorPacket = new ErrorPacket(bytes);
-                    Console.WriteLine(GetCurrentTime() + " [SERVER]: ERROR - " + errorPacket._ErrorMsg + ", MODE - " + errorPacket._ErrorCode);
+                    Console.WriteLine(
+                        GetCurrentTime() + " [SERVER]: ERROR WITH CODE " + 
+                        errorPacket._ErrorCode + " \"" + errorCodes[errorPacket._ErrorCode] + "\" (" + 
+                        errorPacket._ErrorMsg + ")"
+                    );
                     break;
             }
         }
@@ -108,9 +153,69 @@ namespace TFTPClient
             await _UDPSocket.SendToAsync(s, SocketFlags.None, _UDPEndPoint);
         }
 
+        private async void ReceiveMessageAsync(SocketReceiveMessageFromResult res)
+        {
+            res = await _UDPSocket.ReceiveMessageFromAsync(_bufferSegment, SocketFlags.None, _UDPEndPoint);
+            HandleMessage(_bufferSegment.Array);
+        }
+
         private String GetCurrentTime()
         {
             return DateTime.Now.ToString("HH:mm:ss tt");
+        }
+
+        public async Task SendFileAsync(string message)
+        {
+            string path = message.Split(' ')[1];
+            byte[] fileBytes;
+            using (FileStream fstream = File.OpenRead($"{path}"))
+            {
+                fileBytes = new byte[fstream.Length];
+                fstream.Read(fileBytes, 0, fileBytes.Length);
+            }
+            List<byte[]> fileBytesSegmentsList = new List<byte[]>();
+            for (int i = 0; i < fileBytes.Length; i++)
+            {
+                byte[] segmentArr = new byte[_bufferSize];
+                for (int j = 0; j < segmentArr.Length; j++)
+                {
+                    segmentArr[j] = fileBytes[i];
+                }
+                fileBytesSegmentsList.Add(segmentArr);
+            }
+            for (short i = 0; i < fileBytesSegmentsList.Count; i++)
+            {
+                DataPacket dataPacket = new DataPacket(OpCodeType.DATA, i, fileBytesSegmentsList[i]);
+                await Send(dataPacket.getBytes());
+            }
+
+
+        }
+
+        private async Task SendFileInfoAsync(string message)
+        {
+            string path = message.Split(' ')[1];
+            FileInfo fileInfo = new FileInfo(path);
+            RQPacket rqPacket = new RQPacket(OpCodeType.WRQ, fileInfo.Name, "NETASCII");
+            byte[] packetBytes = rqPacket.getBytes();
+            await Send(packetBytes);
+        }
+
+        private void SaveFile()
+        {
+            List<byte> receivedFileBytesList = new List<byte>();
+            foreach (byte[] el in receivingFileSegments)
+            {
+                foreach (byte b in el)
+                {
+                    receivedFileBytesList.Add(b);
+                }
+            }
+            using (FileStream fstream = new FileStream($"{receivedFileName}", FileMode.OpenOrCreate))
+            {
+                fstream.Write(receivedFileBytesList.ToArray(), 0, receivedFileBytesList.Count);
+                Console.WriteLine("Received a file from server: " + receivedFileName);
+            }
         }
 
     }

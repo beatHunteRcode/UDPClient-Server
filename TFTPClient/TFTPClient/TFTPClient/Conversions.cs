@@ -22,5 +22,16 @@ namespace TFTPClient
             }
             return newList.ToArray();
         }
+
+        public static byte[] convertShortToByteArray(short value)
+        {
+            byte[] arr = BitConverter.GetBytes(value);
+            byte tmp = 0;
+            tmp = arr[0];
+            arr[0] = arr[1];
+            arr[1] = tmp;
+
+            return arr;
+        }
     }
 }

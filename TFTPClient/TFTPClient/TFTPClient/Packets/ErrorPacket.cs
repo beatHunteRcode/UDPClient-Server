@@ -51,5 +51,14 @@ namespace TFTPClient.Packets
             _ErrorCode = Conversions.convertBytesArrayToShort(errCodeBytes);
             _ErrorMsg = Encoding.UTF8.GetString(Conversions.parseBytes(errorMsgBytes, _Zero));
         }
+
+        public byte[] getBytes()
+        {
+            byte[] opcodeBytes = Conversions.convertShortToByteArray((short)_Opcode);
+            byte[] errorcodeBytes = Conversions.convertShortToByteArray(_ErrorCode);
+            byte[] errormsgBytes = Encoding.UTF8.GetBytes(_ErrorMsg);
+
+            return opcodeBytes.Concat(errorcodeBytes).Concat(errormsgBytes).Concat(new byte[] { 0 }).ToArray();
+        }
     }
 }
