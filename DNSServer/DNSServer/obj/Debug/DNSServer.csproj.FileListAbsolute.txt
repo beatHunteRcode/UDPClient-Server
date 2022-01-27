@@ -1,0 +1,14 @@
+D:\Programming\С#\UDPChat\DNSServer\DNSServer\bin\Debug\DNSServer.exe.config
+D:\Programming\С#\UDPChat\DNSServer\DNSServer\bin\Debug\DNSServer.exe
+D:\Programming\С#\UDPChat\DNSServer\DNSServer\bin\Debug\DNSServer.pdb
+D:\Programming\С#\UDPChat\DNSServer\DNSServer\obj\Debug\DNSServer.csproj.AssemblyReference.cache
+D:\Programming\С#\UDPChat\DNSServer\DNSServer\obj\Debug\DNSServer.csproj.CoreCompileInputs.cache
+D:\Programming\С#\UDPChat\DNSServer\DNSServer\obj\Debug\DNSServer.exe
+D:\Programming\С#\UDPChat\DNSServer\DNSServer\obj\Debug\DNSServer.pdb
+D:\Programming\С#\UDPClient-Server\DNSServer\DNSServer\obj\Debug\DNSServer.csproj.AssemblyReference.cache
+D:\Programming\С#\UDPClient-Server\DNSServer\DNSServer\obj\Debug\DNSServer.csproj.CoreCompileInputs.cache
+D:\Programming\С#\UDPClient-Server\DNSServer\DNSServer\obj\Debug\DNSServer.exe
+D:\Programming\С#\UDPClient-Server\DNSServer\DNSServer\obj\Debug\DNSServer.pdb
+D:\Programming\С#\UDPClient-Server\DNSServer\DNSServer\bin\Debug\DNSServer.exe.config
+D:\Programming\С#\UDPClient-Server\DNSServer\DNSServer\bin\Debug\DNSServer.exe
+D:\Programming\С#\UDPClient-Server\DNSServer\DNSServer\bin\Debug\DNSServer.pdb
