@@ -74,8 +74,9 @@ namespace DNSServer.DNS
         {
             byte[] answerBytes = new byte[0];
             foreach (byte[] el in list) {
-                answerBytes.Concat(el);
+                answerBytes = answerBytes.Concat(new byte[] { (byte)el.Length }).Concat(el).ToArray();
             }
+            answerBytes = answerBytes.Concat(new byte[] { 0 }).ToArray();
             return answerBytes;
         }
 

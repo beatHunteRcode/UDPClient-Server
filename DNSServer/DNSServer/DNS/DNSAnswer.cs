@@ -57,14 +57,24 @@ namespace DNSServer.DNS
         {
             if (_RDATA == null) _RDATA = new byte[0];
             byte[] nameBytes = getQNameBytes(_NameArr);
-            byte[] typeBytes = BitConverter.GetBytes((short)_TYPE);
-            byte[] classBytes = BitConverter.GetBytes(_CLASS);
-            byte[] ttlBytes = BitConverter.GetBytes(_TTL);
-            byte[] rdlengthBytes = Conversions.convertShortToByteArray(_RDLENGTH);
+            byte[] typeBytes = Conversions.convertShortToByteArray((short)_TYPE);
+            byte[] classBytes = Conversions.convertShortToByteArray(_CLASS);
+            byte[] ttlBytes = Conversions.convertIntToByteArray(_TTL);
+
+            //fill Data Length field
+            byte[] rdlengthBytes;
+            if (_TYPE == DNSType.MX || _TYPE == DNSType.TXT)
+            {
+                rdlengthBytes = Conversions.convertShortToByteArray((short)(_RDLENGTH + 2));
+            }
+            else
+            {
+                rdlengthBytes = Conversions.convertShortToByteArray(_RDLENGTH);
+            }
+
             byte[] rdataBytes = _RDATA;
 
             byte[] answerBytes = nameBytes.
-                                    Concat(nameBytes).
                                     Concat(typeBytes).
                                     Concat(classBytes).
                                     Concat(ttlBytes).
@@ -78,8 +88,9 @@ namespace DNSServer.DNS
             byte[] answerBytes = new byte[0];
             foreach (byte[] el in list)
             {
-                answerBytes.Concat(el);
+                answerBytes = answerBytes.Concat(new byte[] { (byte)el.Length }).Concat(el).ToArray();
             }
+            answerBytes = answerBytes.Concat(new byte[] { 0 }).ToArray();
             return answerBytes;
         }
 

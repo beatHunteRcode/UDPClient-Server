@@ -23,7 +23,21 @@ namespace DNSServer.DNS
 
         public void fillParentRDATAWithBytes()
         {
-            _RData = Conversions.convertShortToByteArray(_Preference).Concat(Encoding.UTF8.GetBytes(_Exchange)).ToArray();
+            _RData = Conversions.convertShortToByteArray(_Preference).Concat(convertDomainNameIntoByteArr(_Exchange)).ToArray();
+        }
+
+        private byte[] convertDomainNameIntoByteArr(String domainName)
+        {
+            byte[] answerBytes = new byte[0];
+            string[] parts = domainName.Split('.');
+            foreach (string part in parts)
+            {
+                answerBytes = answerBytes.
+                    Concat(new byte[] { (byte)part.Length }).
+                    Concat(Encoding.UTF8.GetBytes(part)).ToArray();
+            }
+            answerBytes = answerBytes.Concat(new byte[] { 0 }).ToArray();
+            return answerBytes;
         }
     }
 }

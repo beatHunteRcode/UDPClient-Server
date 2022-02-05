@@ -73,5 +73,16 @@ namespace DNSServer.DNS
                 hex.AppendFormat("{0:x2}", b);
             return hex.ToString();
         }
+
+        public static byte[] convertIntToByteArray(int value)
+        {
+            byte[] arr = BitConverter.GetBytes(value);
+            byte tmp0 = arr[0];
+            byte tmp1 = arr[1];
+            byte tmp2 = arr[2];
+            byte tmp3 = arr[3];
+
+            return new byte[] { tmp3, tmp2, tmp1, tmp0 };
+        }
     }
 }

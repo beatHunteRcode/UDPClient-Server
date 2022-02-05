@@ -23,7 +23,7 @@ namespace DNSServer
 
         private String rrAstringIP = "77.79.249.29";
         private String rrAAAAstringIP = "3d31:6534:fe34:123a:654c:13bb:6543:451f";
-        private String rrMXstring = "ns.arasaka.bad";
+        private String rrMXstring = "mx.arasaka.bad";
         private String rrTXTstring = "I never asked for this...";
 
         public Server(string ip, int port)
@@ -75,7 +75,7 @@ namespace DNSServer
                     DNSResourceRecord RR = createResourceRecord(dnsMessage);
                     DNSAnswer dnsAnswer = createDNSAnswer(RR);
                     dnsMessage._DNSHeader._ANCOUNT++;
-                    await SendTo(res.RemoteEndPoint, dnsMessage._DNSHeader.getBytes().Concat(dnsAnswer.getBytes()).ToArray());
+                    await SendTo(res.RemoteEndPoint, dnsMessage._DNSHeader.getBytes().Concat(dnsMessage._DNSQuery.getBytes()).Concat(dnsAnswer.getBytes()).ToArray());
                     printOutcomindDNSMessage(dnsMessage, dnsAnswer);
                 }
             });
@@ -129,6 +129,7 @@ namespace DNSServer
                         0);
                     rrMX._Preference = 10;
                     rrMX._Exchange = rrMXstring;
+                    rrMX._RDLength = (short)(2 + Encoding.UTF8.GetBytes(rrMX._Exchange).Length);
                     resourceRecord = rrMX;
                     rrMX.fillParentRDATAWithBytes();
                     break;
@@ -159,6 +160,7 @@ namespace DNSServer
                         0);
                     rrTXT._RDATA = rrTXTstring;
                     rrTXT._RDLength = (short)rrTXT._RDATA.Length;
+                    rrTXT._TXTLength = (short)rrTXT._RDATA.Length;
                     resourceRecord = rrTXT;
                     rrTXT.fillParentRDATAWithBytes();
                     break;
@@ -193,7 +195,7 @@ namespace DNSServer
             Console.WriteLine("\nANSWER\n" + dnsAnswer.ToString());
             PrintByteArray(dnsAnswer.getBytes());
             Console.WriteLine("\nALL: ");
-            PrintByteArray(dnsMessage._DNSHeader.getBytes().Concat(dnsAnswer.getBytes()).ToArray());
+            PrintByteArray(dnsMessage._DNSHeader.getBytes().Concat(dnsMessage._DNSQuery.getBytes()).Concat(dnsAnswer.getBytes()).ToArray());
             Console.WriteLine("-------------------------------------------");
             Console.WriteLine("\n\n");
         }
