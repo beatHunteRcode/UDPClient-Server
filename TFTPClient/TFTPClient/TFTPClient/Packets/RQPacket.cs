@@ -61,7 +61,7 @@ namespace TFTPClient.Packets
             byte[] filenameBytes = Encoding.UTF8.GetBytes(_Filename);
             byte[] modeBytes = Encoding.UTF8.GetBytes(_Mode);
 
-            return opcodeBytes.Concat(filenameBytes).Concat(modeBytes).ToArray();
+            return opcodeBytes.Concat(filenameBytes).Concat(new byte[] { 0 }).Concat(modeBytes).Concat(new byte[] { 0 }).ToArray();
         }
     }
 }
